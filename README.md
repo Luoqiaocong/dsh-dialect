@@ -16,7 +16,7 @@
 
 | 设置页 | 对话输入框 |
 | --- | --- |
-| <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/settings.png" width="430" alt="方言彩蛋设置页，粤语、中档 30%" /> | <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/composer.png" width="260" alt="对话输入框旁的粤语快捷控制" /> |
+| <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/settings.png?v=2" width="430" alt="方言彩蛋设置页，粤语、中档 30%" /> | <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/composer.png?v=2" width="260" alt="对话输入框旁的粤语快捷控制" /> |
 
 ### 回答效果（粤语）
 

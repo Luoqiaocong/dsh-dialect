@@ -16,7 +16,7 @@ Keep answers in plain Mandarin and occasionally season them with a little dialec
 
 | Settings page | Composer control |
 | --- | --- |
-| <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/settings.png" width="430" alt="Dialect spice settings page with Cantonese and medium 30%" /> | <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/composer.png" width="260" alt="Cantonese shortcut beside the composer" /> |
+| <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/settings.png?v=2" width="430" alt="Dialect spice settings page with Cantonese and medium 30%" /> | <img src="https://raw.githubusercontent.com/Luoqiaocong/dsh-dialect/main/docs/screenshots/composer.png?v=2" width="260" alt="Cantonese shortcut beside the composer" /> |
 
 ### Cantonese answer
 
