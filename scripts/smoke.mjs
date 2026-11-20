@@ -156,10 +156,13 @@ test('话题地域适配覆盖设置方言和频率', () => {
     '不用受上面的方言和频率约束',
     '优先级：用户在消息里明确指定的说法 > 话题地域',
     '话题地域和设置方言冲突时',
+    '地域话题下，上面的方言风格和强度说明只作参考',
   ]) {
     assert.ok(prompt.includes(needle), `缺少 ${needle}`)
   }
   assert.ok(prompt.includes('普通话题里'))
+  assert.ok(prompt.indexOf('【话题地域适配】') > prompt.indexOf('【粤语 · 风格】'), '地域适配应排在方言风格之后')
+  assert.ok(prompt.indexOf('【话题地域适配】') > prompt.indexOf('【场景权重】'), '地域适配应排在场景权重之后')
 })
 
 test('强度越高，用法说明越放开', () => {
