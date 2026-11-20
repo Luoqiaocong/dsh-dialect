@@ -33,22 +33,24 @@ test('缺省设置回落到默认值，频率默认中档', () => {
     enabled: true,
     dialect: 'northeast',
     randomPool: [...RANDOM_POOL],
-    frequency: 'medium',
+    frequency: 'low',
     intensity: 'medium',
     sceneBoost: true,
     customPhrases: [],
   })
-  assert.equal(DEFAULT_SETTINGS.frequency, 'medium')
+  assert.equal(DEFAULT_SETTINGS.frequency, 'low')
 })
 
 test('旧版 0–100 数字频率迁移到五档', () => {
   assert.equal(normalizeFrequency(0), 'off')
   assert.equal(normalizeFrequency(8), 'low')
-  assert.equal(normalizeFrequency(20), 'medium')
-  assert.equal(normalizeFrequency(50), 'high')
+  assert.equal(normalizeFrequency(20), 'low')
+  assert.equal(normalizeFrequency(30), 'medium')
+  assert.equal(normalizeFrequency(40), 'high')
+  assert.equal(normalizeFrequency(50), 'max')
   assert.equal(normalizeFrequency(90), 'max')
   assert.equal(normalizeFrequency('max'), 'max')
-  assert.equal(normalizeFrequency('nope'), 'medium')
+  assert.equal(normalizeFrequency('nope'), 'low')
 })
 
 test('设置归一化会清洗随机池、强度和口头禅', () => {
@@ -79,7 +81,7 @@ test('非法字段被收窄而不是抛错', () => {
   })
   assert.equal(settings.dialect, 'northeast')
   assert.deepEqual(settings.randomPool, ['beijing'])
-  assert.equal(settings.frequency, 'medium')
+  assert.equal(settings.frequency, 'low')
   assert.equal(settings.intensity, 'medium')
   assert.deepEqual(settings.customPhrases, [])
 })
@@ -88,7 +90,7 @@ test('会话覆盖只保留开关、方言和频率', () => {
   assert.deepEqual(normalizeSessionOverride({
     enabled: false,
     dialect: 'tianjin',
-    frequency: 50,
+    frequency: 40,
     intensity: 'heavy',
     randomPool: ['cantonese'],
   }), { enabled: false, dialect: 'tianjin', frequency: 'high' })
@@ -129,11 +131,11 @@ test('频率档位进入提示词，百分比随档位变化', () => {
   const medium = buildDialectPrompt({ ...defaults, frequency: 'medium' }, 'northeast')
   const high = buildDialectPrompt({ ...defaults, frequency: 'high' }, 'northeast')
   const max = buildDialectPrompt({ ...defaults, frequency: 'max' }, 'northeast')
-  assert.ok(low.includes('约 10%'))
-  assert.ok(medium.includes('约 20%'))
-  assert.ok(high.includes('约 35%'))
+  assert.ok(low.includes('约 20%'))
+  assert.ok(medium.includes('约 30%'))
+  assert.ok(high.includes('约 40%'))
   assert.ok(max.includes('约 50%'))
-  assert.ok(high.includes('高：约三成半'))
+  assert.ok(high.includes('高：约四成'))
   assert.ok(max.includes('极高：约一半'))
   assert.ok(high.includes('最好只在闲聊时使用'))
   assert.ok(max.includes('最好只在闲聊时使用'))
@@ -188,9 +190,9 @@ test('随机池清洗：过滤未知、去重、空池回退全部', () => {
 
 test('频率说明覆盖五档', () => {
   assert.ok(frequencyDescriptor('off').startsWith('关闭'))
-  assert.ok(frequencyDescriptor('low').includes('十句'))
-  assert.ok(frequencyDescriptor('medium').includes('五六句'))
-  assert.ok(frequencyDescriptor('high').includes('三成半'))
+  assert.ok(frequencyDescriptor('low').includes('两成'))
+  assert.ok(frequencyDescriptor('medium').includes('三成'))
+  assert.ok(frequencyDescriptor('high').includes('四成'))
   assert.ok(frequencyDescriptor('max').includes('一半'))
 })
 

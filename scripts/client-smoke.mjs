@@ -14,7 +14,7 @@ const DEFAULTS = {
 	enabled: true,
 	dialect: 'northeast',
 	randomPool: ['northeast', 'tianjin', 'beijing', 'cantonese'],
-	frequency: 'medium',
+	frequency: 'low',
 	intensity: 'medium',
 	sceneBoost: true,
 	customPhrases: [],
@@ -154,7 +154,7 @@ for (const needle of [
 ]) {
 	assert.ok(settingsTree.includes(needle), `设置页缺少 ${needle}`)
 }
-assert.ok(settingsTree.includes('中 · 20%'), '默认应显示中档 20%')
+assert.ok(settingsTree.includes('低 · 20%'), '默认应显示低档 20%')
 assert.ok(!settingsTree.includes('不建议日常使用'), '默认中档不应出现高/极高警告')
 
 const maxStore = fakeStore({
@@ -183,8 +183,8 @@ assert.ok(offTree.includes('方言关'), '关闭时应显示方言关')
 
 const frequency = bundle.FrequencyControl({ value: 'high', onChange: () => {} })
 const frequencyTree = JSON.stringify(frequency)
-assert.ok(frequencyTree.includes('高 · 35%'))
+assert.ok(frequencyTree.includes('高 · 40%'))
 assert.ok(frequencyTree.includes('最好只在闲聊时使用'))
-assert.ok(frequencyTree.includes('约三成半句子带方言'))
+assert.ok(frequencyTree.includes('约四成句子'))
 
 console.log('ALL OK (settings page, settings icon, and composer shortcut register and render)')
