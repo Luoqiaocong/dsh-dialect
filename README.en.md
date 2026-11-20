@@ -1,59 +1,91 @@
-# Dialect spice (dsh-dialect)
+# dsh-dialect · Dialect spice
 
-Keep answers in plain Mandarin and occasionally season them with a little dialect flavor — Northeast, Tianjin, Beijing, or Cantonese. Full configuration lives in **Settings → Dialect spice**; a compact control beside the composer adjusts the current session only.
+English | [中文](README.md)
+
+Keep answers in plain Mandarin and occasionally season them with a little dialect flavor — Northeast, Tianjin, Beijing, or Cantonese. Full configuration lives in Settings; a compact control beside the composer adjusts the current session. High and max levels carry warning colors and never turn a whole answer into dialect.
+
+<p align="left">
+  <a href="https://www.npmjs.com/package/dsh-dialect"><img alt="npm" src="https://img.shields.io/npm/v/dsh-dialect?style=flat-square&color=4c6ef5" /></a>
+  <img alt="DSH" src="https://img.shields.io/badge/DSH-%3E%3D0.2.2--rc.1-4c6ef5?style=flat-square" />
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-green?style=flat-square" />
+  <img alt="build" src="https://img.shields.io/badge/build-none-brightgreen?style=flat-square" />
+  <img alt="network" src="https://img.shields.io/badge/network-local%20only-lightgrey?style=flat-square" />
+</p>
+
+## Features
+
+| Setting | Description |
+| --- | --- |
+| Entry points | Settings → Dialect spice for global defaults; the composer button for the current session |
+| Dialect | Northeast, Tianjin, Beijing, Cantonese, or random |
+| Random pool | In random mode, draw one dialect per session from the selected pool and keep it stable |
+| Frequency | Off / 20% / 30% / 40% / 50%; low gray, medium green, high orange, max red |
+| Intensity | Light, medium, heavy |
+| Scene weighting | Raise the frequency for casual chat and error explanations; lower it for formal analysis and tool results |
+| Custom phrases | One per line, up to 12 entries of 24 characters each |
+| Auto-save | Writes to `~/.dsh/dsh-dialect.json`; no save button |
 
 ## Install
 
-Requires DSH `>= 0.2.2-rc.1` and Node `>= 24.9.0`.
-
-From npm, open **Plugins → Add plugin**, enter `dsh-dialect`, install, then **Enable now**. Or from a terminal:
-
-```
+```sh
+# Web (recommended)
 dsh plugin --profile web add dsh-dialect
+
+# DSH Desktop
+dsh plugin --profile desktop add dsh-dialect
+
+# Or from GitHub
+dsh plugin --profile web add github:Luoqiaocong/dsh-dialect
 ```
 
-From GitHub:
+You can also open **Plugins → Add plugin**, enter `dsh-dialect`, install, and choose **Enable now**. Refresh the page; if Settings has no "Dialect spice" entry, restart `dsh web` once.
 
-```
-dsh plugin --profile web add "github:Luoqiaocong/dsh-dialect"
-```
+## Usage
 
-## Where to configure
-
-**Settings → Dialect spice** is the full page:
-
-- master switch
-- dialect: Northeast, Tianjin, Beijing, Cantonese, or random
-- random pool: which dialects participate in the per-session draw
-- frequency: a five-step slider
-- intensity: light, medium, heavy
-- scene weighting: raise the frequency for casual chat, lower it for formal analysis and tool results
-- custom phrases, up to 12 entries
-
-Changes save automatically to `~/.dsh/dsh-dialect.json`; `localStorage` only caches the last value for a fast first paint.
-
-The small button beside the composer adjusts only the switch, dialect, and frequency for the current session. It does not write the global file; **Restore global settings** clears the override.
+1. Open **Settings → Dialect spice** and choose a dialect, random pool, frequency, and intensity.
+2. To change only the current session, click the "语 东北话" button beside the composer.
+3. Choose **Restore global settings** in the popover, or **Restore defaults** at the bottom of the Settings page.
 
 ## Frequency levels
 
 | Level | Approx. share | Note |
 | --- | --- | --- |
 | Off | 0% | no dialect |
-| Low | 20% | default; about one sentence in five |
+| Low | 20% | about one sentence in five; default |
 | Medium | 30% | about three sentences in ten |
 | High | 40% | best for casual chat |
 | Max | 50% | best for casual chat |
 
-Low is gray, medium green, high orange, and max red on the slider. High and max carry a "best for casual chat" hint. Even at max the answer is not entirely dialect: code blocks, tool output, and file contents always stay plain.
+Even at max the answer is not entirely dialect; code blocks, tool output, and file contents always stay plain.
+
+## Compatibility
+
+| Item | Details |
+| --- | --- |
+| DSH | `0.2.2-rc.1` or newer, declared in `dsh.engines.dsh` and checked at install |
+| Node | `24.9.0` or newer |
+| Platform | Web (Chrome / Edge / Firefox / Safari) and DSH Desktop |
+| Dependencies | No runtime dependencies; talks only to the local Host, no external network or telemetry |
+| Storage | Global settings in `~/.dsh/dsh-dialect.json`; session overrides stay in memory |
+
+## How it works
+
+- The Host registers one system-prompt section at `order: 100`, between the persona prefix and the tool instructions.
+- Global settings live in a local JSON file read and written by Host routes; `localStorage` is only a first-paint cache.
+- The composer override is keyed by session id and kept in Host memory, never written to the global file.
+- Random mode caches its draw per session, so the dialect does not change between messages.
+
+## Limits
+
+- This is a prompt-level soft constraint; frequency is descriptive, not an exact count.
+- It never rewrites code blocks, tool output, file contents, or existing transcript rows.
+- Subagents read the global settings too; disable the plugin for them if they must stay plain.
+- A local-directory install is a `link:` — do not move the folder. npm installs have no such limit.
 
 ## Development
 
-```
-npm run check
-```
-
-Runs syntax checks plus two dependency-free test suites for the prompt logic and the browser half. It does not start DSH, use the network, or consume model quota.
+No build step. Edit `lib/client.js` or `lib/index.js` and refresh; `npm run check` runs syntax checks and two dependency-free test suites.
 
 ## License
 
-MIT
+[MIT](LICENSE)
