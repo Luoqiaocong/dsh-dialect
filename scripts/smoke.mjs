@@ -131,10 +131,10 @@ test('频率档位进入提示词，百分比随档位变化', () => {
   const max = buildDialectPrompt({ ...defaults, frequency: 'max' }, 'northeast')
   assert.ok(low.includes('约 10%'))
   assert.ok(medium.includes('约 20%'))
-  assert.ok(high.includes('约 50–60%'))
-  assert.ok(max.includes('约 60–70%'))
-  assert.ok(high.includes('高：约一半多'))
-  assert.ok(max.includes('极高：约六七成'))
+  assert.ok(high.includes('约 35%'))
+  assert.ok(max.includes('约 50%'))
+  assert.ok(high.includes('高：约三成半'))
+  assert.ok(max.includes('极高：约一半'))
   assert.ok(max.includes('也不是通篇方言'))
 })
 
@@ -188,8 +188,8 @@ test('频率说明覆盖五档', () => {
   assert.ok(frequencyDescriptor('off').startsWith('关闭'))
   assert.ok(frequencyDescriptor('low').includes('十句'))
   assert.ok(frequencyDescriptor('medium').includes('五六句'))
-  assert.ok(frequencyDescriptor('high').includes('一半多'))
-  assert.ok(frequencyDescriptor('max').includes('六七成'))
+  assert.ok(frequencyDescriptor('high').includes('三成半'))
+  assert.ok(frequencyDescriptor('max').includes('一半'))
 })
 
 test('随机方言在同一会话内保持稳定', () => {
