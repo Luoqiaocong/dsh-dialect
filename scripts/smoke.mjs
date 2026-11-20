@@ -135,6 +135,8 @@ test('频率档位进入提示词，百分比随档位变化', () => {
   assert.ok(max.includes('约 50%'))
   assert.ok(high.includes('高：约三成半'))
   assert.ok(max.includes('极高：约一半'))
+  assert.ok(high.includes('最好只在闲聊时使用'))
+  assert.ok(max.includes('最好只在闲聊时使用'))
   assert.ok(max.includes('也不是通篇方言'))
 })
 

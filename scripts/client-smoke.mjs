@@ -167,7 +167,7 @@ const maxStore = fakeStore({
 const maxTree = JSON.stringify(settingsRegistration.component({ store: maxStore }))
 assert.ok(maxTree.includes('极高 · 50%'), '极高档应显示 50%')
 assert.ok(maxTree.includes('约一半句子带方言'))
-assert.ok(maxTree.includes('不建议日常使用'))
+assert.ok(maxTree.includes('最好只在闲聊时使用'))
 assert.ok(maxTree.includes('✓ 粤语') && maxTree.includes('✓ 北京话'), '随机池应显示勾选状态')
 assert.ok(maxTree.includes('搞掂'))
 
@@ -184,7 +184,7 @@ assert.ok(offTree.includes('方言关'), '关闭时应显示方言关')
 const frequency = bundle.FrequencyControl({ value: 'high', onChange: () => {} })
 const frequencyTree = JSON.stringify(frequency)
 assert.ok(frequencyTree.includes('高 · 35%'))
-assert.ok(frequencyTree.includes('不建议日常使用'))
+assert.ok(frequencyTree.includes('最好只在闲聊时使用'))
 assert.ok(frequencyTree.includes('约三成半句子带方言'))
 
 console.log('ALL OK (settings page, settings icon, and composer shortcut register and render)')
