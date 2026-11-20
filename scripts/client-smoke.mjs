@@ -154,7 +154,8 @@ for (const needle of [
 ]) {
 	assert.ok(settingsTree.includes(needle), `设置页缺少 ${needle}`)
 }
-assert.ok(settingsTree.includes('低 · 20%'), '默认应显示低档 20%')
+assert.ok(settingsTree.includes('20%'), '默认应显示低档 20%')
+assert.ok(!settingsTree.includes('低 · 20%'), '百分比不应再带档位前缀')
 assert.ok(!settingsTree.includes('不建议日常使用'), '默认中档不应出现高/极高警告')
 
 const maxStore = fakeStore({
@@ -165,8 +166,9 @@ const maxStore = fakeStore({
 	customPhrases: ['搞掂'],
 })
 const maxTree = JSON.stringify(settingsRegistration.component({ store: maxStore }))
-assert.ok(maxTree.includes('极高 · 50%'), '极高档应显示 50%')
-assert.ok(maxTree.includes('约一半句子带方言'))
+assert.ok(maxTree.includes('50%'), '极高档应显示 50%')
+assert.ok(!maxTree.includes('极高 · 50%'), '百分比不应再带档位前缀')
+assert.ok(maxTree.includes('约一半句子'))
 assert.ok(maxTree.includes('最好只在闲聊时使用'))
 assert.ok(maxTree.includes('✓ 粤语') && maxTree.includes('✓ 北京话'), '随机池应显示勾选状态')
 assert.ok(maxTree.includes('搞掂'))
@@ -183,7 +185,7 @@ assert.ok(offTree.includes('方言关'), '关闭时应显示方言关')
 
 const frequency = bundle.FrequencyControl({ value: 'high', onChange: () => {} })
 const frequencyTree = JSON.stringify(frequency)
-assert.ok(frequencyTree.includes('高 · 40%'))
+assert.ok(frequencyTree.includes('40%'))
 assert.ok(frequencyTree.includes('最好只在闲聊时使用'))
 assert.ok(frequencyTree.includes('约四成句子'))
 
