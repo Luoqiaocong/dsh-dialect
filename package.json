@@ -8,8 +8,11 @@
     "deepseek-harness",
     "dsh-plugin",
     "dialect",
+    "dialect-spice",
     "方言",
     "东北话",
+    "天津话",
+    "北京话",
     "粤语"
   ],
   "license": "MIT",
@@ -33,15 +36,20 @@
   "files": [
     "lib",
     "locale",
-    "scripts",
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
+  "engines": {
+    "node": ">=24.9.0"
+  },
   "scripts": {
     "check": "node --check lib/index.js && node --check lib/client.js && node scripts/smoke.mjs && node scripts/client-smoke.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "prepublishOnly": "npm run check"
   },
   "publishConfig": {
     "access": "public",

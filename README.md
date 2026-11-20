@@ -55,10 +55,12 @@
 
 ## 6. 安装
 
-Plugins 页 **Add plugin** 填目录绝对路径，例如 `D:\temp\dsh-dialect`，装完点 **Enable now**。或用命令：
+需要 DSH `>= 0.2.2-rc.1`、Node `>= 24.9.0`。
+
+从 npm 安装（推荐）：Plugins 页 **Add plugin** 里填 `dsh-dialect`，装完点 **Enable now**；也可以直接用命令：
 
 ```
-dsh plugin --profile web add "D:\temp\dsh-dialect"
+dsh plugin --profile web add dsh-dialect
 ```
 
 从 GitHub 安装：
@@ -66,6 +68,8 @@ dsh plugin --profile web add "D:\temp\dsh-dialect"
 ```
 dsh plugin --profile web add "github:Luoqiaocong/dsh-dialect"
 ```
+
+本地开发时，Plugins 页填目录绝对路径，例如 `D:\temp\dsh-dialect`，或用 `dsh plugin --profile web add "D:\temp\dsh-dialect"`。
 
 ## 7. 它是怎么工作的
 
