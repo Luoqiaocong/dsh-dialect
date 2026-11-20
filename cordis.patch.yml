@@ -1,5 +1,5 @@
-# 方言彩蛋：一行 Host 插件；浏览器半部由 dsh.client 声明自动加载，
-# 配置页注册到 Plugins 页的 plugins.bundle.config 槽位，和 dsh-emoji 一样。
+# 方言彩蛋：Host 半部挂提示词注入、settings 文件路由和会话覆盖路由；
+# 浏览器半部注册 Settings 页、设置图标和对话输入框旁的快捷控件。
 - insert:
     - id: dsh-dialect
       name: dsh-dialect

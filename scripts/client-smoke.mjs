@@ -1,10 +1,8 @@
 /**
- * 浏览器半部的无依赖冒烟测试：用假的 window / document / React / configForms
- * 跑一遍 `lib/client.js`，确认它注册到 dsh-emoji 同款的 bundle 配置槽位，
- * 并且默认就渲染出四种方言、频率、强度和随机池。
+ * 浏览器半部的无依赖冒烟测试：用假的 window / document / React / fetch
+ * 跑一遍 `lib/client.js`，确认三个入口都注册到位、设置页和快捷控件能渲染。
  *
- * 这不是浏览器渲染测试，但能挡住「槽位写错」「key 写错」「组件一渲染就抛错」
- * 这类发布事故，而且不联网、不花额度。
+ * 不联网、不启动 DSH、不花额度。
  */
 
 import assert from 'node:assert/strict'
@@ -12,92 +10,109 @@ import assert from 'node:assert/strict'
 /** 捕获到的模块注册。 */
 const specs = []
 
+const DEFAULTS = {
+	enabled: true,
+	dialect: 'northeast',
+	randomPool: ['northeast', 'tianjin', 'beijing', 'cantonese'],
+	frequency: 'medium',
+	intensity: 'medium',
+	sceneBoost: true,
+	customPhrases: [],
+}
+
+const cache = new Map()
+
 globalThis.window = {
 	__ModuleLoader__: {
 		load(spec) {
 			specs.push(spec)
 		},
 	},
+	localStorage: {
+		getItem: key => (cache.has(key) ? cache.get(key) : null),
+		setItem: (key, value) => cache.set(key, value),
+	},
+	addEventListener() {},
+	removeEventListener() {},
+	innerWidth: 1280,
+	innerHeight: 800,
 }
 
 globalThis.document = {
 	getElementById: () => null,
 	createElement: () => ({ set textContent(value) {}, set id(value) {} }),
 	head: { append() {} },
+	body: {},
+	addEventListener() {},
+	removeEventListener() {},
 }
+
+globalThis.fetch = async () => ({ ok: true, json: async () => DEFAULTS })
 
 /**
  * 造一个 React 的假实现：createElement 递归渲染函数组件，hook 返回稳定值。
- * @returns 供 factory 使用的 React。
+ * @returns 供 factory 使用的 React 与 ReactDOM。
  */
 function fakeReact() {
-	return {
+	const Fragment = Symbol('fragment')
+	const React = {
+		Fragment,
 		createElement(type, props, ...children) {
 			const flat = children.flat(Infinity)
+			if (type === Fragment) return { type: 'fragment', props: {}, children: flat }
 			if (typeof type === 'function') return type({ ...(props ?? {}), children: flat })
 			return { type, props: props ?? {}, children: flat }
 		},
 		useState(initial) {
 			return [typeof initial === 'function' ? initial() : initial, () => {}]
 		},
+		useEffect() {},
 		useMemo(fn) {
 			return fn()
 		},
-		useEffect() {},
+		useRef(initial) {
+			return { current: initial }
+		},
+		useCallback(fn) {
+			return fn
+		},
 	}
+	return React
 }
 
 await import('../lib/client.js')
 assert.equal(specs.length, 1, 'client bundle 应只注册一个模块')
 assert.equal(specs[0].id, 'dsh-dialect')
 
+const ReactDOM = { createPortal: node => node }
 const bundle = specs[0].factory(name => {
 	if (name === 'react') return fakeReact()
+	if (name === 'react-dom') return ReactDOM
 	throw new Error(`unexpected require: ${name}`)
 })
 
 /**
- * 造一个 Host settings 表单的假对象。
- * @param value - 命名空间的当前值。
- * @param status - 同步状态。
- * @returns 供 configForms.get 返回的表单。
+ * 造一个假 store。
+ * @param value - 当前设置。
+ * @param status - 保存状态。
+ * @returns store 接口。
  */
-function fakeForm(value, status = 'ready') {
-	const snapshot = { status, value, user: {}, revision: 1, writable: true, base: undefined }
-	const form = {
-		ops: [],
-		getSnapshot: () => snapshot,
+function fakeStore(value, status = { kind: 'saved', text: '已自动保存到本地文件' }) {
+	return {
+		get: () => value,
+		getStatus: () => status,
 		subscribe: () => () => {},
-		mutate: async (ops) => {
-			form.ops.push(ops)
-			return true
-		},
+		patch() {},
+		reset() {},
 	}
-	return form
 }
 
 const registrations = []
 const injections = []
-const form = fakeForm({
-	enabled: true,
-	dialect: 'northeast',
-	randomPool: ['northeast', 'tianjin', 'beijing', 'cantonese'],
-	frequency: 20,
-	intensity: 'medium',
-	sceneBoost: true,
-	customPhrases: [],
-})
-
 const ctx = {
 	effect(fn) {
 		fn()
 		return () => {}
-	},
-	configForms: {
-		get(id) {
-			assert.equal(id, 'dsh-dialect')
-			return form
-		},
 	},
 	slots: {
 		inject(slot, callback) {
@@ -112,65 +127,64 @@ const ctx = {
 }
 
 bundle.apply(ctx)
-assert.deepEqual(injections, ['plugins.bundle.config'])
-assert.equal(registrations.length, 1)
-assert.equal(registrations[0].options.name, 'plugins.bundle.config')
-assert.equal(registrations[0].options.key, 'dsh-dialect')
-assert.equal(typeof registrations[0].component, 'function')
+assert.deepEqual(injections, ['settings.section', 'settings.section.icon', 'conversation.input.left'])
+assert.equal(registrations.length, 3)
+assert.deepEqual(
+	registrations.map(entry => `${entry.options.name}:${entry.options.id}`),
+	['settings.section:dsh-dialect', 'settings.section.icon:dsh-dialect', 'conversation.input.left:dsh-dialect'],
+)
 
-const { component } = registrations[0]
-const face = registrations[0].options.inject()
-assert.ok(face.controller.form === form, '注入面应带上 configForms 表单')
+const settingsRegistration = registrations[0]
+const composerRegistration = registrations[2]
+assert.equal(settingsRegistration.options.label(), '方言彩蛋')
+assert.equal(typeof settingsRegistration.component, 'function')
+assert.equal(typeof composerRegistration.component, 'function')
 
-const page = component({ view: 'page', ...face })
-const tree = JSON.stringify(page)
+const store = fakeStore(DEFAULTS)
+const face = settingsRegistration.options.inject()
+assert.ok(face.store, '设置页应拿到 store')
 
+const settingsPage = settingsRegistration.component(face)
+const settingsTree = JSON.stringify(settingsPage)
 for (const needle of [
 	'方言彩蛋', '东北话', '天津话', '北京话', '粤语', '随机',
-	'出现频率', '强度', '场景加权', '自定义口头禅', '保存', '放弃修改', '恢复默认',
+	'出现频率', '关闭', '低', '中', '高', '极高',
+	'强度', '场景加权', '自定义口头禅', '恢复默认',
+	'改动会自动保存到 ~/.dsh/dsh-dialect.json',
 ]) {
-	assert.ok(tree.includes(needle), `配置页缺少 ${needle}`)
+	assert.ok(settingsTree.includes(needle), `设置页缺少 ${needle}`)
 }
-assert.ok(tree.includes('东北话 · 20% · 中'), '摘要应显示当前方言、频率和强度')
-assert.ok(!tree.includes('"aria-label":"随机池"'), '非随机模式不显示随机池')
+assert.ok(settingsTree.includes('中 · 20%'), '默认应显示中档 20%')
+assert.ok(!settingsTree.includes('不建议日常使用'), '默认中档不应出现高/极高警告')
 
-/** 找出文本为 label 的按钮。 */
-function buttonByText(node, label) {
-	if (node === null || typeof node !== 'object') return undefined
-	if (node.type === 'button' && Array.isArray(node.children) && node.children.includes(label)) return node
-	for (const child of node.children ?? []) {
-		const found = buttonByText(child, label)
-		if (found !== undefined) return found
-	}
-	return undefined
-}
-
-const save = buttonByText(page, '保存')
-assert.ok(save, '应有保存按钮')
-assert.equal(save.props.disabled, true, '没有改动时保存按钮应禁用')
-
-const randomForm = fakeForm({
-	enabled: true,
+const maxStore = fakeStore({
+	...DEFAULTS,
+	frequency: 'max',
 	dialect: 'random',
 	randomPool: ['cantonese', 'beijing'],
-	frequency: 35,
-	intensity: 'heavy',
-	sceneBoost: false,
 	customPhrases: ['搞掂'],
 })
-const randomFace = { controller: { form: randomForm } }
-const randomPage = component({ view: 'page', ...randomFace })
-const randomTree = JSON.stringify(randomPage)
-for (const needle of ['随机池', '✓ 粤语', '✓ 北京话', '随机 2 种 · 35% · 重', '搞掂']) {
-	assert.ok(randomTree.includes(needle), `随机模式缺少 ${needle}`)
-}
-assert.ok(!randomTree.includes('✓ 东北话'), '未勾选的方言不应显示勾选标记')
+const maxTree = JSON.stringify(settingsRegistration.component({ store: maxStore }))
+assert.ok(maxTree.includes('极高 · 65%'), '极高档应显示 65%')
+assert.ok(maxTree.includes('约六七成句子带方言'))
+assert.ok(maxTree.includes('不建议日常使用'))
+assert.ok(maxTree.includes('✓ 粤语') && maxTree.includes('✓ 北京话'), '随机池应显示勾选状态')
+assert.ok(maxTree.includes('搞掂'))
 
-const summary = component({ view: 'summary', ...face })
-assert.ok(JSON.stringify(summary).includes('东北话 · 20% · 中'))
+const composer = composerRegistration.component({ store, sessionId: 'session-1' })
+const composerTree = JSON.stringify(composer)
+assert.ok(composerTree.includes('语'), '快捷控件应有图标字')
+assert.ok(composerTree.includes('东北话'), '快捷控件应显示当前方言')
+assert.ok(!composerTree.includes('"dx-pop"'), '默认不展开弹层')
 
-const unavailable = fakeForm(undefined, 'unavailable')
-const unavailableTree = JSON.stringify(component({ view: 'page', controller: { form: unavailable } }))
-assert.ok(unavailableTree.includes('设置暂不可用'))
+const offStore = fakeStore({ ...DEFAULTS, enabled: false })
+const offTree = JSON.stringify(composerRegistration.component({ store: offStore, sessionId: 'session-1' }))
+assert.ok(offTree.includes('方言关'), '关闭时应显示方言关')
 
-console.log('ALL OK (bundle config registers and renders dialects, frequency, and random pool)')
+const frequency = bundle.FrequencyControl({ value: 'high', onChange: () => {} })
+const frequencyTree = JSON.stringify(frequency)
+assert.ok(frequencyTree.includes('高 · 55%'))
+assert.ok(frequencyTree.includes('不建议日常使用'))
+assert.ok(frequencyTree.includes('约一半多句子带方言'))
+
+console.log('ALL OK (settings page, settings icon, and composer shortcut register and render)')

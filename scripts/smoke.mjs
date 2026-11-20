@@ -3,14 +3,15 @@
  *
  *   npm run check
  *
- * 覆盖：配置归一化、四种方言提示词、随机池抽取与回退、随机方言的会话稳定性、
- * 自定义口头禅清洗。
+ * 覆盖：设置归一化、旧版频率数字迁移、会话覆盖合并、随机池、提示词拼装。
  */
 
 import assert from 'node:assert/strict'
 import { DIALECTS, RANDOM_POOL } from '../lib/dialects.js'
 import {
-  buildDialectPrompt, frequencyDescriptor, pickDialect, readConfig, sanitizePhrases, sanitizePool,
+  buildDialectPrompt, DEFAULT_SETTINGS, frequencyDescriptor, mergeSettings,
+  normalizeFrequency, normalizeSessionOverride, normalizeSettings, pickDialect,
+  sanitizePhrases, sanitizePool,
 } from '../lib/prompt.js'
 
 let passed = 0
@@ -25,69 +26,89 @@ function test(label, fn) {
   console.log(`ok ${passed} - ${label}`)
 }
 
-const defaults = readConfig(undefined)
+const defaults = normalizeSettings(undefined)
 
-test('缺省配置回落到默认值，随机池默认全部四种', () => {
+test('缺省设置回落到默认值，频率默认中档', () => {
   assert.deepEqual(defaults, {
     enabled: true,
     dialect: 'northeast',
     randomPool: [...RANDOM_POOL],
-    frequency: 20,
+    frequency: 'medium',
     intensity: 'medium',
     sceneBoost: true,
     customPhrases: [],
   })
+  assert.equal(DEFAULT_SETTINGS.frequency, 'medium')
 })
 
-test('整个 Config 的 volatile 包装通过 get() 解包', () => {
-  const config = readConfig({
-    get: () => ({
-      enabled: false,
-      dialect: 'cantonese',
-      randomPool: ['cantonese', 'beijing', 'cantonese'],
-      frequency: 45,
-      intensity: 'heavy',
-      sceneBoost: false,
-      customPhrases: ['搞掂', ' 搞掂 ', ''],
-    }),
-  })
-  assert.equal(config.enabled, false)
-  assert.equal(config.dialect, 'cantonese')
-  assert.deepEqual(config.randomPool, ['cantonese', 'beijing'])
-  assert.equal(config.frequency, 45)
-  assert.equal(config.intensity, 'heavy')
-  assert.equal(config.sceneBoost, false)
-  assert.deepEqual(config.customPhrases, ['搞掂'])
+test('旧版 0–100 数字频率迁移到五档', () => {
+  assert.equal(normalizeFrequency(0), 'off')
+  assert.equal(normalizeFrequency(8), 'low')
+  assert.equal(normalizeFrequency(20), 'medium')
+  assert.equal(normalizeFrequency(50), 'high')
+  assert.equal(normalizeFrequency(90), 'max')
+  assert.equal(normalizeFrequency('max'), 'max')
+  assert.equal(normalizeFrequency('nope'), 'medium')
 })
 
-test('逐字段 volatile 的旧写法也能读', () => {
-  const get = value => ({ get: () => value })
-  const config = readConfig({
-    dialect: get('tianjin'),
-    frequency: get(60),
+test('设置归一化会清洗随机池、强度和口头禅', () => {
+  const settings = normalizeSettings({
+    enabled: false,
+    dialect: 'cantonese',
+    randomPool: ['cantonese', 'beijing', 'cantonese'],
+    frequency: 'high',
+    intensity: 'heavy',
+    sceneBoost: false,
+    customPhrases: ['搞掂', ' 搞掂 ', ''],
   })
-  assert.equal(config.dialect, 'tianjin')
-  assert.equal(config.frequency, 60)
+  assert.equal(settings.enabled, false)
+  assert.deepEqual(settings.randomPool, ['cantonese', 'beijing'])
+  assert.equal(settings.frequency, 'high')
+  assert.equal(settings.intensity, 'heavy')
+  assert.equal(settings.sceneBoost, false)
+  assert.deepEqual(settings.customPhrases, ['搞掂'])
 })
 
 test('非法字段被收窄而不是抛错', () => {
-  const config = readConfig({
+  const settings = normalizeSettings({
     dialect: 'martian',
     randomPool: ['martian', 'beijing'],
-    frequency: 999,
+    frequency: 'extreme',
     intensity: 'extreme',
     customPhrases: 'nope',
   })
-  assert.equal(config.dialect, 'northeast')
-  assert.deepEqual(config.randomPool, ['beijing'])
-  assert.equal(config.frequency, 100)
-  assert.equal(config.intensity, 'medium')
-  assert.deepEqual(config.customPhrases, [])
+  assert.equal(settings.dialect, 'northeast')
+  assert.deepEqual(settings.randomPool, ['beijing'])
+  assert.equal(settings.frequency, 'medium')
+  assert.equal(settings.intensity, 'medium')
+  assert.deepEqual(settings.customPhrases, [])
 })
 
-test('关闭或 0% 时不注入任何提示词', () => {
+test('会话覆盖只保留开关、方言和频率', () => {
+  assert.deepEqual(normalizeSessionOverride({
+    enabled: false,
+    dialect: 'tianjin',
+    frequency: 50,
+    intensity: 'heavy',
+    randomPool: ['cantonese'],
+  }), { enabled: false, dialect: 'tianjin', frequency: 'high' })
+  assert.deepEqual(normalizeSessionOverride(null), {})
+})
+
+test('会话覆盖优先于全局设置', () => {
+  const merged = mergeSettings(
+    { ...defaults, dialect: 'northeast', frequency: 'medium', intensity: 'medium' },
+    { dialect: 'cantonese', frequency: 'max' },
+  )
+  assert.equal(merged.dialect, 'cantonese')
+  assert.equal(merged.frequency, 'max')
+  assert.equal(merged.intensity, 'medium')
+  assert.equal(merged.enabled, true)
+})
+
+test('关闭或 off 档时不注入任何提示词', () => {
   assert.equal(buildDialectPrompt({ ...defaults, enabled: false }, 'northeast'), '')
-  assert.equal(buildDialectPrompt({ ...defaults, frequency: 0 }, 'northeast'), '')
+  assert.equal(buildDialectPrompt({ ...defaults, frequency: 'off' }, 'northeast'), '')
 })
 
 test('四种方言都有风格、强度和示例', () => {
@@ -103,9 +124,23 @@ test('四种方言都有风格、强度和示例', () => {
   }
 })
 
-test('东北话提示词包含频率、规则和口头禅', () => {
+test('频率档位进入提示词，百分比随档位变化', () => {
+  const low = buildDialectPrompt({ ...defaults, frequency: 'low' }, 'northeast')
+  const medium = buildDialectPrompt({ ...defaults, frequency: 'medium' }, 'northeast')
+  const high = buildDialectPrompt({ ...defaults, frequency: 'high' }, 'northeast')
+  const max = buildDialectPrompt({ ...defaults, frequency: 'max' }, 'northeast')
+  assert.ok(low.includes('约 10%'))
+  assert.ok(medium.includes('约 20%'))
+  assert.ok(high.includes('约 50–60%'))
+  assert.ok(max.includes('约 60–70%'))
+  assert.ok(high.includes('高：约一半多'))
+  assert.ok(max.includes('极高：约六七成'))
+  assert.ok(max.includes('也不是通篇方言'))
+})
+
+test('东北话提示词包含规则、口头禅和示例', () => {
   const prompt = buildDialectPrompt({ ...defaults }, 'northeast')
-  for (const needle of ['方言彩蛋', '当前方言：东北话', '约 20%', '规则（必须遵守）', '老铁', '代码块', '示例语气']) {
+  for (const needle of ['方言彩蛋', '当前方言：东北话', '规则（必须遵守）', '老铁', '代码块', '示例语气']) {
     assert.ok(prompt.includes(needle), `缺少 ${needle}`)
   }
 })
@@ -119,7 +154,7 @@ test('强度越高，用法说明越放开', () => {
 })
 
 test('粤语模板强调普通话打底，不整段翻译', () => {
-  const prompt = buildDialectPrompt({ ...defaults, dialect: 'cantonese', intensity: 'medium' }, 'cantonese')
+  const prompt = buildDialectPrompt({ ...defaults, dialect: 'cantonese' }, 'cantonese')
   assert.ok(prompt.includes('粤语'))
   assert.ok(prompt.includes('不是整句翻译'))
   assert.ok(prompt.includes('搞掂'))
@@ -144,39 +179,40 @@ test('口头禅清洗：去空白、去重、限长、限量', () => {
 })
 
 test('随机池清洗：过滤未知、去重、空池回退全部', () => {
-  assert.deepEqual(sanitizePool(['yue', 'cantonese', 'cantonese', 'beijing']), ['cantonese', 'beijing'])
+  assert.deepEqual(sanitizePool(['cantonese', 'cantonese', 'beijing']), ['cantonese', 'beijing'])
   assert.deepEqual(sanitizePool([]), [...RANDOM_POOL])
   assert.deepEqual(sanitizePool('nope'), [...RANDOM_POOL])
-  assert.deepEqual(sanitizePool(['cantonese', 'tianjin']), ['cantonese', 'tianjin'])
 })
 
-test('频率说明随数值变化', () => {
-  assert.ok(frequencyDescriptor(0).startsWith('关闭'))
-  assert.ok(frequencyDescriptor(20).includes('五六句'))
-  assert.ok(frequencyDescriptor(90).includes('几乎贯穿全文'))
+test('频率说明覆盖五档', () => {
+  assert.ok(frequencyDescriptor('off').startsWith('关闭'))
+  assert.ok(frequencyDescriptor('low').includes('十句'))
+  assert.ok(frequencyDescriptor('medium').includes('五六句'))
+  assert.ok(frequencyDescriptor('high').includes('一半多'))
+  assert.ok(frequencyDescriptor('max').includes('六七成'))
 })
 
 test('随机方言在同一会话内保持稳定', () => {
   const picks = new Map()
-  const config = { ...defaults, dialect: 'random', randomPool: ['cantonese', 'beijing'] }
-  const first = pickDialect(config, 'session-1', picks, 'northeast')
-  const second = pickDialect(config, 'session-1', picks, 'northeast')
+  const settings = { ...defaults, dialect: 'random', randomPool: ['cantonese', 'beijing'] }
+  const first = pickDialect(settings, 'session-1', picks, 'northeast')
+  const second = pickDialect(settings, 'session-1', picks, 'northeast')
   assert.equal(first, second)
   assert.ok(['cantonese', 'beijing'].includes(first))
 })
 
 test('随机池只有一个选项时只会抽到它', () => {
   const picks = new Map()
-  const config = { ...defaults, dialect: 'random', randomPool: ['cantonese'] }
+  const settings = { ...defaults, dialect: 'random', randomPool: ['cantonese'] }
   for (const session of ['a', 'b', 'c']) {
-    assert.equal(pickDialect(config, session, picks, 'northeast'), 'cantonese')
+    assert.equal(pickDialect(settings, session, picks, 'northeast'), 'cantonese')
   }
 })
 
 test('随机池改动后，旧会话的抽签结果会被重新校验', () => {
   const picks = new Map([['session-1', 'northeast']])
-  const config = { ...defaults, dialect: 'random', randomPool: ['cantonese'] }
-  assert.equal(pickDialect(config, 'session-1', picks, 'northeast'), 'cantonese')
+  const settings = { ...defaults, dialect: 'random', randomPool: ['cantonese'] }
+  assert.equal(pickDialect(settings, 'session-1', picks, 'northeast'), 'cantonese')
   assert.equal(picks.get('session-1'), 'cantonese')
 })
 

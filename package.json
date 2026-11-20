@@ -1,8 +1,8 @@
 {
   "name": "dsh-dialect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "DSH 插件：让模型回答里偶尔自然夹带方言。插件页里直接选东北话、天津话、北京话或粤语，调频率和强度，也可以从随机池里抽。",
+  "description": "DSH 方言彩蛋：Settings 里完整配置，对话输入框旁按会话快捷切换；五档频率，高和极高有警示配色。",
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -42,9 +42,6 @@
   "scripts": {
     "check": "node --check lib/index.js && node --check lib/client.js && node scripts/smoke.mjs && node scripts/client-smoke.mjs",
     "smoke": "node scripts/smoke.mjs"
-  },
-  "dependencies": {
-    "@deepseek-ai/schemastery": "^3.19.0"
   },
   "publishConfig": {
     "access": "public",
