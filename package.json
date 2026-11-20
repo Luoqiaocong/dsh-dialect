@@ -1,6 +1,6 @@
 {
   "name": "dsh-dialect",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "description": "DSH 方言彩蛋：Settings 里完整配置，对话输入框旁按会话快捷切换；五档频率，高和极高有警示配色。",
   "keywords": [
