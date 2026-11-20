@@ -149,6 +149,19 @@ test('东北话提示词包含规则、口头禅和示例', () => {
   }
 })
 
+test('话题地域适配覆盖设置方言和频率', () => {
+  const prompt = buildDialectPrompt({ ...defaults, dialect: 'cantonese', frequency: 'low' }, 'cantonese')
+  for (const needle of [
+    '话题地域适配',
+    '不用受上面的方言和频率约束',
+    '优先级：用户在消息里明确指定的说法 > 话题地域',
+    '话题地域和设置方言冲突时',
+  ]) {
+    assert.ok(prompt.includes(needle), `缺少 ${needle}`)
+  }
+  assert.ok(prompt.includes('普通话题里'))
+})
+
 test('强度越高，用法说明越放开', () => {
   const light = buildDialectPrompt({ ...defaults, intensity: 'light' }, 'northeast')
   const heavy = buildDialectPrompt({ ...defaults, intensity: 'heavy' }, 'northeast')

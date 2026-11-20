@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5
+
+- A clear regional topic can now override the configured dialect and frequency: the model may answer with that region's local phrasing even when it is not in the settings.
+- The Settings page notes that the frequency level does not apply to regional topics.
+
 ## 0.2.3
 
 - Frequency is now a five-step slider with a smooth ladder: off / 20% / 30% / 40% / 50%.

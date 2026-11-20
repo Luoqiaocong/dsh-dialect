@@ -151,6 +151,7 @@ for (const needle of [
 	'出现频率', '关闭', '低', '中', '高', '极高',
 	'强度', '场景加权', '自定义口头禅', '恢复默认',
 	'改动会自动保存到 ~/.dsh/dsh-dialect.json',
+	'话题明确指向某个地域时',
 ]) {
 	assert.ok(settingsTree.includes(needle), `设置页缺少 ${needle}`)
 }

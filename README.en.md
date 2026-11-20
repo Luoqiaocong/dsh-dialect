@@ -32,6 +32,7 @@ The answer content is illustrative only.
 | Dialect | Northeast, Tianjin, Beijing, Cantonese, or random |
 | Random pool | In random mode, draw one dialect per session from the selected pool and keep it stable |
 | Frequency | Off / 20% / 30% / 40% / 50%; low gray, medium green, high orange, max red |
+| Topic region | When the conversation is clearly about one region, the model may answer with that region's local phrasing, regardless of the configured dialect and frequency |
 | Intensity | Light, medium, heavy |
 | Scene weighting | Raise the frequency for casual chat and error explanations; lower it for formal analysis and tool results |
 | Custom phrases | One per line, up to 12 entries of 24 characters each |
@@ -69,6 +70,8 @@ You can also open **Plugins → Add plugin**, enter `dsh-dialect`, install, and 
 | Max | 50% | best for casual chat |
 
 Even at max the answer is not entirely dialect; code blocks, tool output, and file contents always stay plain.
+
+When the topic clearly points to one region (Sichuan, Shanghai, Northeast China, Guangdong, Tianjin, Beijing, and so on), the frequency level does not apply: the model decides how much local phrasing fits, even if that dialect is not in the settings.
 
 ## Compatibility
 
