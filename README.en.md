@@ -56,7 +56,7 @@ You can also open **Plugins → Add plugin**, enter `dsh-dialect`, install, and 
 
 1. Open **Settings → Dialect spice** and choose a dialect, random pool, frequency, and intensity.
 2. To change only the current session, click the "语 东北话" button beside the composer.
-3. Choose **Restore global settings** in the popover, or **Restore defaults** at the bottom of the Settings page.
+3. Choose **Restore global settings** in the popover, or **Restore defaults** beside the switch at the top of the Settings page.
 
 ## Frequency levels
 
