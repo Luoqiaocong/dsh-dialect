@@ -1,0 +1,51 @@
+name: publish
+
+# Trusted Publishing: this workflow authenticates to npm with the GitHub OIDC
+# token, so the repository needs no NPM_TOKEN secret.
+#
+# Enable it once, after the first manual publish:
+#   npmjs.com → dsh-dialect → Settings → Trusted publishing
+#   owner: Luoqiaocong · repository: dsh-dialect · workflow: publish.yml
+#
+# After that, pushing a v* tag publishes the matching package.json version.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Check that the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::tag v$TAG does not match package.json version $VERSION"
+            exit 1
+          fi
+      - name: Verify the bundle
+        run: npm run check
+      - name: Publish to npm
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          case "$VERSION" in
+            *-*) TAG=beta ;;
+            *)   TAG=latest ;;
+          esac
+          echo "publishing $VERSION to dist-tag $TAG"
+          npm publish --provenance --access public --tag "$TAG"
