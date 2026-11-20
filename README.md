@@ -33,7 +33,7 @@ dsh plugin --profile web add "D:\temp\dsh-dialect"
 从 GitHub 安装则用仓库地址：
 
 ```
-dsh plugin --profile web add "https://github.com/Luoqiaocong/dsh-dialect"
+dsh plugin --profile web add "github:Luoqiaocong/dsh-dialect"
 ```
 
 ## 3. 它是怎么工作的
