@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Dialect spice">
+  <rect width="64" height="64" rx="14" fill="#FFF2EB"/>
+  <path d="M10 15.5A5.5 5.5 0 0 1 15.5 10h33a5.5 5.5 0 0 1 5.5 5.5v19a5.5 5.5 0 0 1-5.5 5.5H31.5l-10 8.7V40h-6A5.5 5.5 0 0 1 10 34.5z" fill="#E4572E"/>
+  <path d="M19 21h22M19 28h15" stroke="#FFF2EB" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M45.5 40.5c4.5 2.2 6.6 7.4 4 12-2.6 4.6-9 5.8-13.2 2.5-3.4-2.7-3.7-7.7-.7-10.7 2.2-2.2 5.7-2.4 7.7-.3 1.7 1.8 1.1 4.4-1 5.2" fill="none" stroke="#D92D20" stroke-width="4.6" stroke-linecap="round"/>
+  <path d="M45 41c1.2-3 4-4.6 7-4" fill="none" stroke="#3F8F5B" stroke-width="3.2" stroke-linecap="round"/>
+</svg>
