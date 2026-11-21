@@ -94,6 +94,7 @@ When the topic clearly points to one region (Sichuan, Shanghai, Northeast China,
 ## Limits
 
 - This is a prompt-level soft constraint; frequency is descriptive, not an exact count.
+- A clear regional topic opts itself out: when the conversation is plainly about one place, the model may answer in that region's phrasing, and neither the frequency level nor the configured dialect constrains it.
 - It never rewrites code blocks, tool output, file contents, or existing transcript rows.
 - Subagents read the global settings too; disable the plugin for them if they must stay plain.
 - A local-directory install is a `link:` — do not move the folder. npm installs have no such limit.
