@@ -10,6 +10,7 @@
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green?style=flat-square" />
   <img alt="build" src="https://img.shields.io/badge/build-none-brightgreen?style=flat-square" />
   <img alt="network" src="https://img.shields.io/badge/network-local%20only-lightgrey?style=flat-square" />
+  <a href="https://linux.do"><img alt="LINUX DO" src="https://img.shields.io/badge/LINUX%20DO-%E7%A4%BE%E5%8C%BA-0aa0e9?style=flat-square" /></a>
 </p>
 
 ## 截图
@@ -106,3 +107,5 @@ dsh plugin --profile web add github:Luoqiaocong/dsh-dialect
 ## License
 
 [MIT](LICENSE)
+
+本项目的讨论与推广发生在 [LINUX DO](https://linux.do) 社区。

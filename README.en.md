@@ -10,6 +10,7 @@ Keep answers in plain Mandarin and occasionally season them with a little dialec
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green?style=flat-square" />
   <img alt="build" src="https://img.shields.io/badge/build-none-brightgreen?style=flat-square" />
   <img alt="network" src="https://img.shields.io/badge/network-local%20only-lightgrey?style=flat-square" />
+  <a href="https://linux.do"><img alt="LINUX DO" src="https://img.shields.io/badge/LINUX%20DO-%E7%A4%BE%E5%8C%BA-0aa0e9?style=flat-square" /></a>
 </p>
 
 ## Screenshots
@@ -106,3 +107,5 @@ No build step. Edit `lib/client.js` or `lib/index.js` and refresh; `npm run chec
 ## License
 
 [MIT](LICENSE)
+
+Discussion and promotion for this project happen in the [LINUX DO](https://linux.do) community.
