@@ -1,9 +1,12 @@
 # Changelog
 
-## 0.2.5
+## 0.3.0-beta.1
 
+- Scene weighting is now enforced in the Host: a previous turn with code fences, file writes, or dense tool output suppresses the dialect section entirely. An explicit request for dialect in the current message still wins.
+- Added a local density feedback line: recent assistant replies are scanned for dialect phrases, and the prompt gets a callback when the density is above or below the configured target.
 - A clear regional topic can now override the configured dialect and frequency: the model may answer with that region's local phrasing even when it is not in the settings.
 - The Settings page notes that the frequency level does not apply to regional topics.
+- Folds in the unreleased 0.2.5 work; published as a beta.
 
 ## 0.2.3
 

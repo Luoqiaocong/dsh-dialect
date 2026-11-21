@@ -13,6 +13,10 @@ import {
   normalizeFrequency, normalizeSessionOverride, normalizeSettings, pickDialect,
   sanitizePhrases, sanitizePool,
 } from '../lib/prompt.js'
+import {
+  analyzeEvents, densityLine, explicitDialectRequest, messageText, phraseHits,
+  previousTurnEvents, sceneDecision, targetHits,
+} from '../lib/scene.js'
 
 let passed = 0
 /**
@@ -240,6 +244,114 @@ test('非随机模式直接返回配置的方言', () => {
   const picks = new Map()
   assert.equal(pickDialect({ ...defaults, dialect: 'tianjin' }, 's', picks, 'northeast'), 'tianjin')
   assert.equal(picks.size, 0)
+})
+
+
+/**
+ * 造一个只实现读取接口的假会话。
+ * @param events - 事件数组。
+ * @returns 供 scene 函数使用的会话。
+ */
+function fakeSession(events) {
+  return {
+    seq: events.length,
+    eventAt: seq => events[seq],
+    snapshotEvents: (from, to) => events.slice(from, to),
+  }
+}
+
+/** 造一条助手文本消息事件。 */
+function assistantEvent(turn, text) {
+  return { type: 'assistant/message', data: { turn, step: 1, message: { role: 'assistant', content: [{ type: 'text', text }] } } }
+}
+
+test('上一轮事件窗口能正确截取', () => {
+  const events = [
+    { type: 'turn/start', data: { turn: 1 } },
+    { type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text: '北京有什么好吃的' }] } },
+    assistantEvent(1, '推荐烤鸭、涮肉和炸酱面，都是北京本地味道。'),
+    { type: 'turn/end', data: { turn: 1, reason: 'success' } },
+    { type: 'turn/start', data: { turn: 2 } },
+    { type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text: '还有吗' }] } },
+  ]
+  const previous = previousTurnEvents(fakeSession(events))
+  assert.equal(previous.turn, 1)
+  assert.equal(previous.events.length, 3)
+  assert.equal(analyzeEvents(previous.events).formal, false)
+})
+
+test('代码块、写文件和工具结果密集都判为正式任务', () => {
+  const code = analyzeEvents([assistantEvent(1, '示例：\n```js\nconsole.log(1)\n```')])
+  assert.equal(code.formal, true)
+  assert.equal(code.code, true)
+
+  const write = analyzeEvents([{ type: 'tool/call', data: { turn: 1, step: 1, name: 'write', arguments: '{}' } }])
+  assert.equal(write.formal, true)
+  assert.equal(write.writes, true)
+
+  const shell = analyzeEvents([{ type: 'tool/call', data: { turn: 1, step: 1, name: 'win_bash', arguments: '{"command":"Set-Content a.txt 1"}' } }])
+  assert.equal(shell.formal, true)
+
+  const results = analyzeEvents([
+    { type: 'tool/result', data: { message: { content: [{ type: 'text', text: 'x'.repeat(700) }] } } },
+    { type: 'tool/result', data: { message: { content: [{ type: 'text', text: 'y'.repeat(600) }] } } },
+  ])
+  assert.equal(results.formal, true)
+  assert.equal(results.toolResults, 2)
+})
+
+test('正式任务在开启场景加权时直接不注入', () => {
+  const events = [
+    { type: 'turn/start', data: { turn: 1 } },
+    { type: 'tool/call', data: { turn: 1, step: 1, name: 'edit', arguments: '{}' } },
+    { type: 'turn/end', data: { turn: 1, reason: 'success' } },
+    { type: 'turn/start', data: { turn: 2 } },
+    { type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text: '继续' }] } },
+  ]
+  const session = fakeSession(events)
+  assert.equal(sceneDecision(session, true).suppress, true)
+  assert.equal(sceneDecision(session, false).suppress, false)
+})
+
+test('用户明确要求方言时，不被场景硬化拦掉', () => {
+  const events = [
+    { type: 'turn/start', data: { turn: 1 } },
+    { type: 'tool/call', data: { turn: 1, step: 1, name: 'write', arguments: '{}' } },
+    { type: 'turn/end', data: { turn: 1, reason: 'success' } },
+    { type: 'turn/start', data: { turn: 2 } },
+    { type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text: '用粤语讲一下' }] } },
+  ]
+  const decision = sceneDecision(fakeSession(events), true)
+  assert.equal(decision.suppress, false)
+  assert.equal(decision.reason, 'explicit')
+  assert.equal(explicitDialectRequest('用粤语讲一下'), true)
+  assert.equal(explicitDialectRequest('正常说'), false)
+})
+
+test('方言词命中统计会跳过代码块', () => {
+  assert.equal(phraseHits('今日好开心啦，唔该晒', ['啦', '唔']), 2)
+  assert.equal(phraseHits('```\n啦 唔 嘅\n```\n普通话', ['啦', '唔', '嘅']), 0)
+  assert.equal(messageText({ content: [{ type: 'text', text: 'abc' }] }), 'abc')
+})
+
+test('密度反馈按最近几轮给高/低信号', () => {
+  const high = fakeSession([
+    assistantEvent(1, '今日真系好开心啦，唔该晒，得闲饮茶啦。'.repeat(4)),
+    assistantEvent(1, '呢个真系好正嘅，搞掂啦。'.repeat(4)),
+    assistantEvent(1, '唔使急，慢慢嚟啦。'.repeat(4)),
+  ])
+  const highLine = densityLine(high, ['啦', '唔', '嘅'], targetHits('medium'))
+  assert.ok(highLine.includes('偏高'), highLine)
+
+  const low = fakeSession([
+    assistantEvent(1, '这是一段完全用普通话写的普通回答，用来测试密度偏低的情况，没有方言词。'.repeat(2)),
+    assistantEvent(1, '第二段也全部是标准普通话，没有任何地方口音和语气词。'.repeat(2)),
+    assistantEvent(1, '第三段继续用普通话说明，内容保持清楚规范。'.repeat(2)),
+  ])
+  const lowLine = densityLine(low, ['啦', '唔', '嘅'], targetHits('medium'))
+  assert.ok(lowLine.includes('偏低'), highLine)
+
+  assert.equal(targetHits('medium'), 1.2)
 })
 
 console.log(`\nALL OK (${passed} checks)`)

@@ -31,10 +31,10 @@ The answer content is illustrative only.
 | Entry points | Settings → Dialect spice for global defaults; the composer button for the current session |
 | Dialect | Northeast, Tianjin, Beijing, Cantonese, or random |
 | Random pool | In random mode, draw one dialect per session from the selected pool and keep it stable |
-| Frequency | Off / 20% / 30% / 40% / 50%; low gray, medium green, high orange, max red |
+| Frequency | Off / 20% / 30% / 40% / 50%; low gray, medium green, high orange, max red; a density callback follows recent hits |
 | Topic region | When the conversation is clearly about one region, the model may answer with that region's local phrasing, regardless of the configured dialect and frequency |
 | Intensity | Light, medium, heavy |
-| Scene weighting | Raise the frequency for casual chat and error explanations; lower it for formal analysis and tool results |
+| Scene weighting | A previous turn with code fences, file writes, or dense tool output turns injection off entirely; dialect only appears in casual turns |
 | Custom phrases | One per line, up to 12 entries of 24 characters each |
 | Auto-save | Writes to `~/.dsh/dsh-dialect.json`; no save button |
 
@@ -89,6 +89,7 @@ When the topic clearly points to one region (Sichuan, Shanghai, Northeast China,
 - Global settings live in a local JSON file read and written by Host routes; `localStorage` is only a first-paint cache.
 - The composer override is keyed by session id and kept in Host memory, never written to the global file.
 - Random mode caches its draw per session, so the dialect does not change between messages.
+- Before each turn the Host inspects the previous turn; code fences, file writes, or dense tool output suppress the section entirely, and a local phrase-hit count adds the density callback.
 
 ## Limits
 
