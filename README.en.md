@@ -1,8 +1,8 @@
-# dsh-dialect · Dialect spice
+﻿# dsh-dialect · Dialect spice
 
 English | [中文](README.md)
 
-Keep answers in plain Mandarin and occasionally season them with a little dialect flavor — Northeast, Tianjin, Beijing, or Cantonese. Full configuration lives in Settings; a compact control beside the composer adjusts the current session. High and max levels carry warning colors and never turn a whole answer into dialect.
+Keep answers in plain Mandarin and occasionally season them with a little dialect flavor — Northeast, Tianjin, Beijing, Cantonese, or Hakka (Meizhou Xingning, experimental). Full configuration lives in Settings; a compact control beside the composer adjusts the current session. High and max levels carry warning colors and never turn a whole answer into dialect.
 
 <p align="left">
   <a href="https://www.npmjs.com/package/dsh-dialect"><img alt="npm" src="https://img.shields.io/npm/v/dsh-dialect?style=flat-square&color=4c6ef5" /></a>
@@ -30,7 +30,7 @@ The answer content is illustrative only.
 | Setting | Description |
 | --- | --- |
 | Entry points | Settings → Dialect spice for global defaults; the composer button for the current session |
-| Dialect | Northeast, Tianjin, Beijing, Cantonese, or random |
+| Dialect | Northeast, Tianjin, Beijing, Cantonese, Hakka (Meizhou Xingning, experimental), or random |
 | Random pool | In random mode, draw one dialect per session from the selected pool and keep it stable |
 | Frequency | Off / 20% / 30% / 40% / 50%; low gray, medium green, high orange, max red; a density callback follows recent hits |
 | Topic region | When the conversation is clearly about one region, the model may answer with that region's local phrasing, regardless of the configured dialect and frequency |

@@ -7,7 +7,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { DIALECTS, RANDOM_POOL } from '../lib/dialects.js'
+import { DIALECTS, DIALECT_ALIASES, DIALECT_LABELS, RANDOM_POOL } from '../lib/dialects.js'
 import { apply } from '../lib/index.js'
 import {
   buildDialectPrompt, DEFAULT_SETTINGS, frequencyDescriptor, mergeSettings,
@@ -367,6 +367,20 @@ test('密度反馈按最近几轮给高/低信号', () => {
   assert.ok(prompt.includes('特征'), '提示词应给出该方言的具体特征')
   passed += 1
   console.log(`ok ${passed} - 北京话不只靠「您」：儿化、语气词和反重复规则都在提示词里`)
+}
+
+// 客家话：能选、能进随机池、别名能解析，且强调普通话打底。
+{
+  assert.ok(DIALECTS.hakka !== undefined, '客家话模板存在')
+  assert.ok(RANDOM_POOL.includes('hakka'), '客家话进随机池')
+  assert.equal(DIALECT_LABELS.hakka, '客家话')
+  assert.equal(DIALECT_ALIASES['兴宁话'], 'hakka')
+  assert.equal(DIALECT_ALIASES['梅州话'], 'hakka')
+  const prompt = buildDialectPrompt(normalizeSettings({ ...DEFAULT_SETTINGS, dialect: 'hakka' }), 'hakka')
+  assert.ok(prompt.includes('客家话'), '提示词点明客家话')
+  assert.ok(prompt.includes('普通话'), '提示词要求普通话打底')
+  passed += 1
+  console.log(`ok ${passed} - 客家话可选中、进随机池，且普通话打底`)
 }
 
 // 路由鉴权：connection 判回绝时，请求到此为止，不读也不改设置。

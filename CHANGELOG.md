@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-beta.3
+
+- Adds 客家话 (Meizhou Xingning, experimental): a fifth dialect you can pick or leave in the random pool. Plain Mandarin stays the base; it adds Hakka vocabulary and sentence-final particles (唔、系、冇、脉个、样般、咧).
+- Beijing dialect now leads with 儿化 and 收尾词 instead of 您; the prompt caps any single marker word at once per reply.
+- Every dialect carries a short feature list so the model imitates a set of traits rather than one word.
+
 ## 0.3.0-beta.2
 
 - The Host routes now ask the composition's `connection` service (`requestRejection`) before doing anything, so a cross-site page or an unauthenticated caller gets 401/403 instead of reading or changing settings.
