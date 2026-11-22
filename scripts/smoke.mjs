@@ -8,6 +8,7 @@
 
 import assert from 'node:assert/strict'
 import { DIALECTS, RANDOM_POOL } from '../lib/dialects.js'
+import { apply } from '../lib/index.js'
 import {
   buildDialectPrompt, DEFAULT_SETTINGS, frequencyDescriptor, mergeSettings,
   normalizeFrequency, normalizeSessionOverride, normalizeSettings, pickDialect,
@@ -353,5 +354,32 @@ test('密度反馈按最近几轮给高/低信号', () => {
 
   assert.equal(targetHits('medium'), 1.2)
 })
+
+// 路由鉴权：connection 判回绝时，请求到此为止，不读也不改设置。
+{
+  let handler
+  const ctx = {
+    systemPrompt: { section: () => ({}) },
+    effect: (fn) => fn(),
+    inject: (deps, fn) => fn({
+      effect: (f) => f(),
+      webServer: { register: (def) => { handler = def.handler } },
+    }),
+    connection: { requestRejection: (request) => (request.headers.origin === undefined ? undefined : 403) },
+  }
+  apply(ctx)
+  const response = {
+    statusCode: 0,
+    headers: undefined,
+    body: undefined,
+    writeHead(status, headers) { this.statusCode = status; this.headers = headers },
+    end(body) { this.body = body },
+  }
+  await handler({ url: '/dsh-dialect/config', method: 'GET', headers: { origin: 'https://evil.example' } }, response)
+  assert.equal(response.statusCode, 403)
+  assert.equal(response.body, undefined)
+  passed += 1
+  console.log(`ok ${passed} - 路由先问 connection：被回绝的请求不再读设置`)
+}
 
 console.log(`\nALL OK (${passed} checks)`)
