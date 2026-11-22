@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta.4
+
+- Fixes the settings page failing with HTTP 400: the routes now declare `connection` in the plugin's `inject` list, which is what makes `ctx.connection.requestRejection` reachable.
+- A trust check that throws now answers 403 instead of taking the handler down with it.
+
 ## 0.3.0-beta.3
 
 - Adds 客家话 (Meizhou Xingning, experimental): a fifth dialect you can pick or leave in the random pool. Plain Mandarin stays the base; it adds Hakka vocabulary and sentence-final particles (唔、系、冇、脉个、样般、咧).
