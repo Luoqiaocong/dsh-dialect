@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta.2
+
+- The Host routes now ask the composition's `connection` service (`requestRejection`) before doing anything, so a cross-site page or an unauthenticated caller gets 401/403 instead of reading or changing settings.
+- Adds a smoke test for that gate.
+
 ## 0.3.0-beta.1
 
 - Scene weighting is now enforced in the Host: a previous turn with code fences, file writes, or dense tool output suppresses the dialect section entirely. An explicit request for dialect in the current message still wins.
