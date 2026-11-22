@@ -355,6 +355,20 @@ test('密度反馈按最近几轮给高/低信号', () => {
   assert.equal(targetHits('medium'), 1.2)
 })
 
+// 北京话不能只靠「您」撑方言感：模板里得有儿化和语气词，提示词要压制单个词重复。
+{
+  const beijing = DIALECTS.beijing
+  assert.ok(beijing.phrases.includes('甭') || beijing.phrases.includes('儿化'), '口头禅应包含真正的北京口语词')
+  assert.ok(!beijing.phrases.includes('您'), '「您」不该出现在口头禅清单里')
+  assert.equal(beijing.example.includes('您'), false, '示例语气不该通篇客套')
+  const prompt = buildDialectPrompt(normalizeSettings({ ...DEFAULT_SETTINGS, dialect: 'beijing' }), 'beijing')
+  assert.ok(prompt.includes('儿化'), '提示词应点出儿化')
+  assert.ok(prompt.includes('整段最多一次'), '提示词应限制单个词重复')
+  assert.ok(prompt.includes('特征'), '提示词应给出该方言的具体特征')
+  passed += 1
+  console.log(`ok ${passed} - 北京话不只靠「您」：儿化、语气词和反重复规则都在提示词里`)
+}
+
 // 路由鉴权：connection 判回绝时，请求到此为止，不读也不改设置。
 {
   let handler
